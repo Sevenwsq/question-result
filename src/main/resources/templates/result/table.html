@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>数据表格</title>
+    <link rel="stylesheet" th:href="@{/static/layui/css/layui.css}">
+    <style>
+        .laytable-cell-1-0-1 {
+            color: #23a37f !important;
+        }
+
+    </style>
+</head>
+<body>
+<div style="position: fixed; top:0px; width: 100%; z-index: 999; opacity: 0.9">
+    <ul class="layui-nav layui-bg-green">
+        <li class="layui-nav-item"><a href="#">首页</a></li>
+        <li class="layui-nav-item layui-this"><a th:href="@{/result/table}">表格展示</a></li>
+        <li class="layui-nav-item"><a th:href="@{/result/online}">图表分析</a></li>
+        <li class="layui-nav-item" lay-unselect="" style="float: right;">
+            <a href="javascript:;"><img src="//t.cn/RCzsdCq" class="layui-nav-img">我</a>
+            <dl class="layui-nav-child">
+                <dd><a href="javascript:;">修改信息</a></dd>
+                <dd><a href="javascript:;">安全管理</a></dd>
+                <dd><a href="javascript:;">退了</a></dd>
+            </dl>
+        </li>
+    </ul>
+</div>
+
+<div style="margin-top: 90px">
+    <div style="margin-left: 50px;  margin-bottom: 15px;">
+        <h1>
+            <i class="layui-icon layui-icon-link" style="font-size: 1em;"></i>&nbsp;预防地震知识调查</h1>
+    </div>
+    <table class="layui-hide" id="userTable" lay-filter="userTable"></table>
+    <script type="text/html" id="userToolBar"></script>
+    <script type="text/html" id="userBar">
+        <a class="layui-btn layui-btn-xs" lay-event="online">图表视图</a>
+    </script>
+</div>
+</body>
+
+<script th:src="@{/static/layui/layui.js}"></script>
+<script type="text/javascript">
+    layui.use(['element', 'jquery', 'form', 'layer', 'table'], function () {
+        var $ = layui.jquery;
+        var element = layui.element;
+        var form = layui.form;
+        var layer = layui.layer;
+        var table = layui.table;
+        //渲染数据表格
+        var tableIns = table.render({
+            elem: '#userTable'   //渲染的目标对象
+            , url: '/questionResult/page' //数据接口
+            , title: '问卷结果'//数据导出来的标题
+            , toolbar: "#userToolBar"  //开启头部工具栏，并为其绑定左侧模板
+            , defaultToolbar: ['filter', 'exports', 'print'] //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+            /* ,height:300 */
+            // ,height:'full-200'
+            , cellMinWidth: 100 //设置列的最小默认宽度
+            , done: function (res, curr, count, limit) {
+                // alert(res);//后台url返回的json串
+                // alert(curr);//当前页
+                // alert(count);//数据总条数
+                // alert(limit);
+
+            }
+            , page: true  //启用分页
+            , limit: 10 //默认一页多少条数据
+            , limits: [10, 2, 4, 6, 8]
+            , text: {
+                none: '暂无相关数据' //默认：无数据。注：该属性为 layui 2.2.5 开始新增
+            }
+            , cols: [
+                [
+                    //{type: 'checkbox', fixed: 'left',type: 'checkbox'}
+                    {field: 'questionId', title: '序号', fixed: 'left', width: 80, sort: true}
+                    , {field: 'questionTitle', title: '题目信息', width: 300}
+
+                    , {field: 'optionA', title: '选项A', width: 160}
+                    , {field: 'selectA', title: '人数', width: 80}
+
+                    , {field: 'optionB', title: '选项B', width: 160}
+                    , {field: 'selectB', title: '人数', width: 80}
+
+                    , {field: 'optionC', title: '选项C', width: 160}
+                    , {field: 'selectC', title: '人数', width: 80}
+
+                    , {field: 'optionD', title: '选项D', width: 160}
+                    , {field: 'selectD', title: '人数', width: 80}
+
+                    , {fixed: 'right', title: '操作', toolbar: '#userBar', align: 'center'}
+                ]
+            ]
+        })
+        //监听行工具事件
+        table.on('tool(userTable)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的 DOM 对象（如果有的话）
+            if (layEvent === 'online') { //删除
+
+                //console.log(data.questionId);
+                var id = data.questionId;
+                //alert("http://localhost:8080/result/online?id="+id);
+                //客户端实现跳转
+                window.location.href = "http://localhost:8080/result/online?id=" + id;
+
+            }
+        });
+    })
+</script>
+
+</html>

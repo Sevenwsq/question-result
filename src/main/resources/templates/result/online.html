@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>在线显示</title>
+    <link rel="stylesheet" th:href="@{/static/layui/css/layui.css}">
+    <script th:src="@{/static/js/echarts.js}"></script>
+    <script th:src="@{/static/js/jquery-3.4.1.js}"></script>
+    <style>
+        #singletonBar {
+            width: 500px;
+            height: 350px;
+            margin-left: 10%;
+            float: left;
+        }
+
+        #singletonPie {
+            width: 400px;
+            height: 350px;
+            margin-left: 10%;
+            float: left;
+        }
+
+        .layui-form-select dl dd.layui-this {
+            background-color: #1875a3;
+        }
+    </style>
+</head>
+<body>
+<div style="position: fixed; top:0px; width: 100%; z-index: 999; opacity: 0.9">
+    <ul class="layui-nav layui-bg-green">
+        <li class="layui-nav-item"><a href="#">首页</a></li>
+        <li class="layui-nav-item "><a th:href="@{/result/table}">表格展示</a></li>
+        <li class="layui-nav-item layui-this"><a th:href="@{/result/online}">图表分析</a></li>
+        <li class="layui-nav-item" lay-unselect="" style="float: right;">
+            <a href="javascript:;"><img src="//t.cn/RCzsdCq" class="layui-nav-img">我</a>
+            <dl class="layui-nav-child">
+                <dd><a href="javascript:;">修改信息</a></dd>
+                <dd><a href="javascript:;">安全管理</a></dd>
+                <dd><a href="javascript:;">退了</a></dd>
+            </dl>
+        </li>
+    </ul>
+</div>
+
+<div style="margin-left: 50px; margin-top: 90px;">
+    <h1>
+        <i class="layui-icon layui-icon-link" style="font-size: 1em;"></i>&nbsp;预防地震知识调查</h1>
+</div>
+<!--设置一个隐藏的input，接受后台传来的id-->
+<input type="text" hidden th:value="${id}" id="defaultId">
+
+<form class="layui-form" action="" style="margin-top: 30px; margin-bottom: 30px;">
+    <div class="layui-form-item" style="width: 80%; margin-left: 5%;">
+        <label class="layui-form-label">选择题目</label>
+        <div class="layui-input-block">
+            <select name="interest" lay-filter="question">
+                <option value="" disabled></option>
+                <option th:value="${titleSta.count}" th:each="title,titleSta:${titles}"
+                        th:text="${titleSta.count + '、'+ title}"></option>
+            </select>
+        </div>
+    </div>
+</form>
+
+<div id="singletonBar"></div>
+<div id="singletonPie"></div>
+</body>
+<script th:src="@{/static/layui/layui.js}"></script>
+<script type="text/javascript">
+    var singletonPie = echarts.init(document.getElementById('singletonPie'));
+    var singletonBar = echarts.init(document.getElementById('singletonBar'));
+    var defaultId = document.getElementById("defaultId").getAttribute("value");
+    //利用后台传来的id来控制初始化选择哪一个option
+    var option = document.getElementsByTagName("option")[defaultId];
+    option.setAttribute("selected", "selected");
+    result(defaultId);
+    singletonBar.setOption({
+        toolbox: {
+            feature: {
+                saveAsImage: {}
+            }
+        },
+        color: '#177BD0',
+        title: {
+            text: ''
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+            }
+        },
+        xAxis: {
+            data: []
+        },
+        yAxis: {},
+        series: [{
+            name: '选择人数',
+            type: 'bar',
+            data: []
+        }]
+    })
+
+    function result(id) {
+        $.ajax('/questionResult/' + id).done(function (suc) {
+            //console.log(suc);
+            // 填入数据
+            singletonBar.setOption({
+                title: {
+                    text: suc.title
+                },
+                xAxis: {
+                    data: suc.categories
+                },
+                series: [{
+                    // 根据名字对应到相应的系列
+                    name: '选择人数',
+                    data: suc.data
+                }]
+            });
+            singletonPie.setOption({
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
+                    }
+                },
+                title: {
+                    text: suc.title
+                },
+                tooltip: {},
+                //color中的颜色和data中的显示依次匹配
+                color: ['#ca8622', '#bda29a', '#6e7074', '#546570', '#c4ccd3', '#c23531', '#2f4554', '#61a0a8', '#d48265', '#91c7ae', '#749f83'],
+                series: [
+
+                    {
+                        name: '选择人数',
+                        type: 'pie',
+                        radius: '65%',
+                        data: [
+                            {value: suc.data[0], name: suc.categories[0]},
+                            {value: suc.data[1], name: suc.categories[1]},
+                            {value: suc.data[2], name: suc.categories[2]},
+                            {value: suc.data[3], name: suc.categories[3]}
+
+                        ]
+                    }
+                ]
+            });
+        });
+    }
+
+    layui.use(['form', 'element'], function () {
+        var form = layui.form;
+        var element = layui.element;
+        form.on('select(question)', function (data) {
+            var id = data.value;
+            result(id);
+
+        });
+    })
+
+</script>
+
+</html>
